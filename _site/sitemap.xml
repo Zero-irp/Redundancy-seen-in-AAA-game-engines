@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+<loc>http://localhost:4000/Redundancy-seen-in-AAA-game-engines/part-1-intro/</loc>
+<lastmod>2026-04-04T00:00:00+05:30</lastmod>
+</url>
+<url>
+<loc>http://localhost:4000/Redundancy-seen-in-AAA-game-engines/part-1-dunia/</loc>
+<lastmod>2026-05-26T00:00:00+05:30</lastmod>
+</url>
+<url>
+<loc>http://localhost:4000/Redundancy-seen-in-AAA-game-engines/part-2-Ghost-of-tsushima/</loc>
+<lastmod>2026-05-26T00:00:00+05:30</lastmod>
+</url>
+<url>
+<loc>http://localhost:4000/Redundancy-seen-in-AAA-game-engines/part-3-Avalanche-engine/</loc>
+<lastmod>2026-05-26T00:00:00+05:30</lastmod>
+</url>
+<url>
+<loc>http://localhost:4000/Redundancy-seen-in-AAA-game-engines/part-4-using-general-matrix-inverse-when-you-should-not/</loc>
+<lastmod>2026-05-26T00:00:00+05:30</lastmod>
+</url>
+<url>
+<loc>http://localhost:4000/Redundancy-seen-in-AAA-game-engines/</loc>
+</url>
+</urlset>

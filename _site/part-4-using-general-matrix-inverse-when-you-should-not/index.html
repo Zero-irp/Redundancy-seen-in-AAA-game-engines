@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Part 4: Using generic matrix inverse when you don’t need to | Redundancy and Bloat seen in AAA Game Engines</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Part 4: Using generic matrix inverse when you don’t need to" />
+<meta name="author" content="z1rp" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Overengineering in AAA Game Engines" />
+<meta property="og:description" content="Overengineering in AAA Game Engines" />
+<link rel="canonical" href="http://localhost:4000/Redundancy-seen-in-AAA-game-engines/part-4-using-general-matrix-inverse-when-you-should-not/" />
+<meta property="og:url" content="http://localhost:4000/Redundancy-seen-in-AAA-game-engines/part-4-using-general-matrix-inverse-when-you-should-not/" />
+<meta property="og:site_name" content="Redundancy and Bloat seen in AAA Game Engines" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-05-26T00:00:00+05:30" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Part 4: Using generic matrix inverse when you don’t need to" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"z1rp"},"dateModified":"2026-05-26T00:00:00+05:30","datePublished":"2026-05-26T00:00:00+05:30","description":"Overengineering in AAA Game Engines","headline":"Part 4: Using generic matrix inverse when you don’t need to","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/Redundancy-seen-in-AAA-game-engines/part-4-using-general-matrix-inverse-when-you-should-not/"},"url":"http://localhost:4000/Redundancy-seen-in-AAA-game-engines/part-4-using-general-matrix-inverse-when-you-should-not/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/Redundancy-seen-in-AAA-game-engines/assets/css/style.css">
+  <link rel="stylesheet" href="/Redundancy-seen-in-AAA-game-engines/assets/css/syntax.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/Redundancy-seen-in-AAA-game-engines/feed.xml" title="Redundancy and Bloat seen in AAA Game Engines" /></head>
+<!-- ✅ MathJax setup -->
+  <script>
+    MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- ✅ End MathJax setup -->
+
+  <body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/Redundancy-seen-in-AAA-game-engines/">Redundancy and Bloat seen in AAA Game Engines</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.685,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+          <a class="page-link" href="https://zero-irp.github.io/All-Blogs-z1rp/" style="margin-right: 20px;">All-Blogs</a><a class="page-link" href="/Redundancy-seen-in-AAA-game-engines/">Index</a></div>
+      </nav></div>
+</header><main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Part 4: Using generic matrix inverse when you don&#39;t need to</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2026-05-26T00:00:00+05:30" itemprop="datePublished">May 26, 2026
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <style>
+.post-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #444;
+  font-family: Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 15px;
+}
+.post-nav a {
+  color: #569cd6;
+  text-decoration: none;
+  padding: 10px 16px;
+  background: #1e1e1e;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+.post-nav a:hover {
+  background: #2d2d2d;
+}
+</style>
+
+<style>
+.ida-code{
+  background:#1e1e1e;
+  color:#dcdcdc;
+  padding:12px;
+  border-radius:8px;
+  font-family: Consolas, "Liberation Mono", Menlo, monospace;
+  font-size:14px;
+  line-height:1.4;
+  overflow-x:auto;
+  white-space: pre; /* preserve spaces and linebreaks */
+}
+
+/* token classes you can use inside the div */
+.ida-code .kw    { color:#ff9e3b; } /* keywords (Bright Orange) -> Or use #f9d849 for Bright Yellow *
+.ida-code .type  { color:#4ec9b0; } /* types */
+.ida-code .fn    { color:#dcdcaa; } /* functions / intrinsics */
+.ida-code .num   { color:#b5cea8; } /* numbers / hex */
+.ida-code .var   { color:#9cdcfe; } /* variables */
+.ida-code .const { color:#ce9178; } /* globals / constants */
+.ida-code .comment{ color:#6a9955; font-style:italic; }
+</style>
+
+<p>This is a small tangent I’m going to go on: It’s about the amount of times I have seen a game engine using a generic matrix inverse function where it can be inlined to be way WAY faster!</p>
+
+<p>Here is a generic matrix inverse using Cramer’s Rule:</p>
+
+<div class="ida-code"><span class="type">_UNKNOWN</span> **<span class="kw">__fastcall</span> <span class="fn">sub_65C3E20</span>(<span class="type">__m128</span> *<span class="var">a1</span>)
+{
+  <span class="var">v2</span> = *<span class="var">a1</span>;
+  <span class="var">v3</span> = <span class="var">a1</span>[<span class="num">1</span>];
+  <span class="var">v4</span> = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v2</span>, <span class="var">v2</span>, <span class="num">0xFF</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v5</span> = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v3</span>, <span class="var">v3</span>, <span class="num">0xFF</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v40</span> = *<span class="var">a1</span>;
+  <span class="var">v42</span> = <span class="var">v3</span>.<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v6</span> = <span class="var">a1</span>[<span class="num">2</span>];
+  <span class="var">v7</span> = <span class="var">a1</span>[<span class="num">3</span>];
+  <span class="var">v8</span> = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v7</span>, <span class="var">v7</span>, <span class="num">0xFF</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v9</span> = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v7</span>, <span class="var">v7</span>, <span class="num">0xAA</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v10</span> = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v6</span>, <span class="var">v6</span>, <span class="num">0xFF</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v11</span> = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v2</span>, <span class="var">v2</span>, <span class="num">0xAA</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v38</span> = <span class="var">v7</span>;
+  <span class="var">v7</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v3</span>, <span class="var">v3</span>, <span class="num">0xAA</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v39</span> = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v6</span>, <span class="var">v6</span>, <span class="num">0xAA</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v12</span> = <span class="var">v7</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v8</span>;
+  <span class="var">v13</span> = <span class="var">v39</span> * <span class="var">v8</span>;
+  <span class="var">v14</span> = <span class="var">v5</span> * <span class="var">v9</span>;
+  <span class="var">v37</span> = <span class="var">v6</span>.<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v41</span> = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v3</span>, <span class="var">v3</span>, <span class="num">0x55</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v46</span> = <span class="var">v8</span>;
+  <span class="var">v15</span> = <span class="var">v11</span> * <span class="var">v8</span>;
+  <span class="var">v44</span> = <span class="var">v11</span>;
+  <span class="var">v16</span> = <span class="var">v4</span> * <span class="var">v9</span>;
+  <span class="var">v48</span> = <span class="var">v9</span>;
+  <span class="var">v17</span> = <span class="var">v10</span> * <span class="var">v9</span>;
+  <span class="var">v18</span> = <span class="var">v11</span> * <span class="var">v5</span>;
+  <span class="var">v49</span> = <span class="var">v7</span>.<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v7</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] = <span class="var">v7</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v10</span>;
+  <span class="var">v43</span> = <span class="var">v10</span>;
+  <span class="var">v19</span> = <span class="var">v11</span> * <span class="var">v10</span>;
+  <span class="var">v20</span> = <span class="var">v4</span> * <span class="var">v39</span>;
+  <span class="var">v47</span> = <span class="var">v4</span>;
+  <span class="var">v21</span> = <span class="var">v4</span> * <span class="var">v49</span>;
+  <span class="var">v31</span> = <span class="var">v12</span>;
+  <span class="var">v45</span> = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v6</span>, <span class="var">v6</span>, <span class="num">0x55</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v50</span> = <span class="fn">_mm_shuffle_ps</span>(<span class="var">v38</span>, <span class="var">v38</span>, <span class="num">0x55</span>).<span class="var">m128_f32</span>[<span class="num">0</span>];
+  <span class="var">v30</span> = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v45</span> * <span class="var">v14</span>) + (<span class="kw">float</span>)(<span class="var">v41</span> * <span class="var">v13</span>)) + (<span class="kw">float</span>)(<span class="var">v50</span> * <span class="var">v7</span>.<span class="var">m128_f32</span>[<span class="num">0</span>]))
+      - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v45</span> * <span class="var">v12</span>) + (<span class="kw">float</span>)(<span class="var">v41</span> * <span class="var">v17</span>)) + (<span class="kw">float</span>)(<span class="var">v50</span> * (<span class="kw">float</span>)(<span class="var">v5</span> * <span class="var">v39</span>)));
+  <span class="var">v32</span> = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v45</span> * <span class="var">v15</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">1</span>] * <span class="var">v17</span>)) + (<span class="kw">float</span>)(<span class="var">v50</span> * <span class="var">v20</span>))
+      - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v45</span> * <span class="var">v16</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">1</span>] * <span class="var">v13</span>)) + (<span class="kw">float</span>)(<span class="var">v50</span> * <span class="var">v19</span>));
+  <span class="var">v33</span> = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v41</span> * <span class="var">v16</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">1</span>] * <span class="var">v12</span>)) + (<span class="kw">float</span>)(<span class="var">v50</span> * <span class="var">v18</span>))
+      - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v41</span> * <span class="var">v15</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">1</span>] * <span class="var">v14</span>)) + (<span class="kw">float</span>)(<span class="var">v50</span> * <span class="var">v21</span>));
+  <span class="var">v3</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v41</span> * <span class="var">v19</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">1</span>] * (<span class="kw">float</span>)(<span class="var">v5</span> * <span class="var">v39</span>)))
+                         + (<span class="kw">float</span>)(<span class="var">v45</span> * <span class="var">v21</span>))
+                 - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v41</span> * <span class="var">v20</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">1</span>] * <span class="var">v7</span>.<span class="var">m128_f32</span>[<span class="num">0</span>])) + (<span class="kw">float</span>)(<span class="var">v45</span> * <span class="var">v18</span>));
+  <span class="var">v22</span> = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v6</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v12</span>) + (<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v17</span>))
+              + (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * (<span class="kw">float</span>)(<span class="var">v5</span> * <span class="var">v39</span>)))
+      - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v6</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v14</span>) + (<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v13</span>)) + (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v7</span>.<span class="var">m128_f32</span>[<span class="num">0</span>]));
+  <span class="var">v23</span> = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v6</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v16</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v13</span>)) + (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v19</span>))
+      - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v6</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v15</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v17</span>)) + (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v20</span>));
+  <span class="var">v24</span> = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v15</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v14</span>)) + (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v21</span>))
+      - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v16</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v31</span>)) + (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v18</span>));
+  <span class="var">v6</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] = <span class="var">v42</span> * <span class="var">v19</span>;
+  <span class="var">v25</span> = <span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="fn">COERCE_FLOAT</span>(<span class="fn">HIDWORD</span>(<span class="var">a1</span>-&gt;<span class="var">m128_u64</span>[<span class="num">0</span>]));
+  <span class="var">v26</span> = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v20</span>) + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v7</span>.<span class="var">m128_f32</span>[<span class="num">0</span>])) + (<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v18</span>))
+      - (<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v6</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] + (<span class="kw">float</span>)(<span class="var">v40</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * (<span class="kw">float</span>)(<span class="var">v5</span> * <span class="var">v39</span>))) + (<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v21</span>));
+  <span class="var">v27</span> = <span class="fn">COERCE_FLOAT</span>(*<span class="var">a1</span>) * <span class="var">v50</span>;
+  <span class="var">v29</span> = <span class="fn">COERCE_FLOAT</span>(*<span class="var">a1</span>) * <span class="var">v45</span>;
+  <span class="var">v34</span> = <span class="var">v37</span> * <span class="fn">COERCE_FLOAT</span>(<span class="fn">HIDWORD</span>(<span class="var">a1</span>-&gt;<span class="var">m128_u64</span>[<span class="num">0</span>]));
+  <span class="var">v35</span> = <span class="fn">COERCE_FLOAT</span>(*<span class="var">a1</span>) * <span class="var">v41</span>;
+  <span class="var">v36</span> = <span class="var">v42</span> * <span class="fn">COERCE_FLOAT</span>(<span class="fn">HIDWORD</span>(<span class="var">a1</span>-&gt;<span class="var">m128_u64</span>[<span class="num">0</span>]));
+  <span class="var">v28</span> = <span class="num">1.0</span>
+      / (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v30</span> * <span class="fn">COERCE_FLOAT</span>(*<span class="var">a1</span>)) + (<span class="kw">float</span>)(<span class="var">v32</span> * <span class="var">v42</span>)) + (<span class="kw">float</span>)(<span class="var">v33</span> * <span class="var">v37</span>))
+              + (<span class="kw">float</span>)(<span class="var">v3</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>]));
+  <span class="var">a1</span>-&gt;<span class="var">m128_f32</span>[<span class="num">0</span>] = <span class="var">v30</span> * <span class="var">v28</span>;
+  <span class="var">a1</span>[<span class="num">1</span>].<span class="var">m128_f32</span>[<span class="num">1</span>] = <span class="var">v28</span> * <span class="var">v23</span>;
+  <span class="var">a1</span>[<span class="num">1</span>].<span class="var">m128_f32</span>[<span class="num">0</span>] = <span class="var">v28</span> * <span class="var">v22</span>;
+  <span class="var">a1</span>[<span class="num">1</span>].<span class="var">m128_f32</span>[<span class="num">3</span>] = <span class="var">v28</span> * <span class="var">v26</span>;
+  <span class="var">a1</span>[<span class="num">1</span>].<span class="var">m128_f32</span>[<span class="num">2</span>] = <span class="var">v28</span> * <span class="var">v24</span>;
+  <span class="var">a1</span>-&gt;<span class="var">m128_f32</span>[<span class="num">3</span>] = <span class="var">v3</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v28</span>;
+  <span class="var">a1</span>-&gt;<span class="var">m128_f32</span>[<span class="num">1</span>] = <span class="var">v32</span> * <span class="var">v28</span>;
+  <span class="var">a1</span>-&gt;<span class="var">m128_f32</span>[<span class="num">2</span>] = <span class="var">v33</span> * <span class="var">v28</span>;
+  <span class="var">a1</span>[<span class="num">2</span>].<span class="var">m128_f32</span>[<span class="num">0</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v41</span>) * <span class="var">v43</span>)
+                                            + (<span class="kw">float</span>)(<span class="var">v5</span> * (<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v50</span>)))
+                                    + (<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v45</span>) * <span class="var">v46</span>))
+                            - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v5</span> * (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v45</span>))
+                                            + (<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v50</span>) * <span class="var">v43</span>))
+                                    + (<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v41</span>) * <span class="var">v46</span>)))
+                    * <span class="var">v28</span>;
+  <span class="var">a1</span>[<span class="num">2</span>].<span class="var">m128_f32</span>[<span class="num">1</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v47</span> * (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v45</span>)) + (<span class="kw">float</span>)(<span class="var">v27</span> * <span class="var">v43</span>))
+                                    + (<span class="kw">float</span>)(<span class="var">v34</span> * <span class="var">v46</span>))
+                            - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v25</span> * <span class="var">v43</span>) + (<span class="kw">float</span>)(<span class="var">v47</span> * (<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v50</span>)))
+                                    + (<span class="kw">float</span>)(<span class="var">v29</span> * <span class="var">v46</span>)))
+                    * <span class="var">v28</span>;
+  <span class="var">a1</span>[<span class="num">2</span>].<span class="var">m128_f32</span>[<span class="num">2</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v25</span> * <span class="var">v5</span>) + (<span class="kw">float</span>)(<span class="var">v47</span> * (<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v50</span>))) + (<span class="kw">float</span>)(<span class="var">v35</span> * <span class="var">v46</span>))
+                            - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v47</span> * (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v41</span>)) + (<span class="kw">float</span>)(<span class="var">v27</span> * <span class="var">v5</span>))
+                                    + (<span class="kw">float</span>)(<span class="var">v36</span> * <span class="var">v46</span>)))
+                    * <span class="var">v28</span>;
+  <span class="var">a1</span>[<span class="num">2</span>].<span class="var">m128_f32</span>[<span class="num">3</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v47</span> * (<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v41</span>)) + (<span class="kw">float</span>)(<span class="var">v29</span> * <span class="var">v5</span>)) + (<span class="kw">float</span>)(<span class="var">v36</span> * <span class="var">v43</span>))
+                            - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v34</span> * <span class="var">v5</span>) + (<span class="kw">float</span>)(<span class="var">v47</span> * (<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v45</span>))) + (<span class="kw">float</span>)(<span class="var">v35</span> * <span class="var">v43</span>)))
+                    * <span class="var">v28</span>;
+  <span class="var">a1</span>[<span class="num">3</span>].<span class="var">m128_f32</span>[<span class="num">0</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v41</span>) * <span class="var">v48</span>) + (<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v50</span>) * <span class="var">v39</span>))
+                                    + (<span class="kw">float</span>)(<span class="var">v49</span> * (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v45</span>)))
+                            - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v45</span>) * <span class="var">v48</span>) + (<span class="kw">float</span>)(<span class="var">v49</span> * (<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v50</span>)))
+                                    + (<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v41</span>) * <span class="var">v39</span>)))
+                    * <span class="var">v28</span>;
+  <span class="var">a1</span>[<span class="num">3</span>].<span class="var">m128_f32</span>[<span class="num">1</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v29</span> * <span class="var">v48</span>) + (<span class="kw">float</span>)(<span class="var">v44</span> * (<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v50</span>)))
+                                    + (<span class="kw">float</span>)(<span class="var">v25</span> * <span class="var">v39</span>))
+                            - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v34</span> * <span class="var">v48</span>) + (<span class="kw">float</span>)(<span class="var">v27</span> * <span class="var">v39</span>))
+                                    + (<span class="kw">float</span>)(<span class="var">v44</span> * (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v45</span>))))
+                    * <span class="var">v28</span>;
+  <span class="var">a1</span>[<span class="num">3</span>].<span class="var">m128_f32</span>[<span class="num">2</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v36</span> * <span class="var">v48</span>) + (<span class="kw">float</span>)(<span class="var">v27</span> * <span class="var">v49</span>))
+                                    + (<span class="kw">float</span>)(<span class="var">v44</span> * (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v41</span>)))
+                            - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v35</span> * <span class="var">v48</span>) + (<span class="kw">float</span>)(<span class="var">v44</span> * (<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v50</span>)))
+                                    + (<span class="kw">float</span>)(<span class="var">v25</span> * <span class="var">v49</span>)))
+                    * <span class="var">v28</span>;
+  <span class="var">a1</span>[<span class="num">3</span>].<span class="var">m128_f32</span>[<span class="num">3</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v44</span> * (<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v45</span>)) + (<span class="kw">float</span>)(<span class="var">v35</span> * <span class="var">v39</span>))
+                                    + (<span class="kw">float</span>)(<span class="var">v34</span> * <span class="var">v49</span>))
+                            - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v29</span> * <span class="var">v49</span>) + (<span class="kw">float</span>)(<span class="var">v36</span> * <span class="var">v39</span>))
+                                    + (<span class="kw">float</span>)(<span class="var">v44</span> * (<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v41</span>))))
+                    * <span class="var">v28</span>;
+  <span class="kw">return</span> &amp;<span class="var">retaddr</span>;
+}</div>
+
+<p>For matrices like the Projection Matrix, a large number of values are simply 0. If it’s a well-known matrix, it can be inlined without using generic inversions. It would be a huge drop in CPU cycles!</p>
+
+<p>In the dunia engine they have inlined the inverse Projection Matrix calculation by saving important variables while constructing the Projection Matrix and rearranging it.</p>
+
+<p>The instruction count for this generic Cramer’s Rule inverse is roughly 470, not to mention instruction count alone isn’t enough to showcase the inefficiency</p>
+
+<h3 id="1-simd-to-scalar">1. SIMD to Scalar</h3>
+
+<p>The matrix rows are loaded into 128-bit wide registers, but get immediately unpacked to do scalar calculations 32 bits at a time.</p>
+
+<h3 id="2-register-spilling">2. Register Spilling</h3>
+
+<div class="ida-code">  <span class="kw">float</span> <span class="var">v29</span>; <span class="comment">// [rsp+4h] [rbp-1C4h]</span>
+  <span class="kw">float</span> <span class="var">v30</span>; <span class="comment">// [rsp+8h] [rbp-1C0h]</span>
+  <span class="kw">float</span> <span class="var">v31</span>; <span class="comment">// [rsp+Ch] [rbp-1BCh]</span>
+  <span class="kw">float</span> <span class="var">v32</span>; <span class="comment">// [rsp+10h] [rbp-1B8h]</span>
+  <span class="kw">float</span> <span class="var">v33</span>; <span class="comment">// [rsp+14h] [rbp-1B4h]</span>
+  <span class="kw">float</span> <span class="var">v34</span>; <span class="comment">// [rsp+1Ch] [rbp-1ACh]</span>
+  <span class="kw">float</span> <span class="var">v35</span>; <span class="comment">// [rsp+20h] [rbp-1A8h]</span>
+  <span class="kw">float</span> <span class="var">v36</span>; <span class="comment">// [rsp+24h] [rbp-1A4h]</span>
+<span class="comment">etc...</span></div>
+
+<p>16 XMM registers are available for floating-point math. This function defines over 50 individual float variables.</p>
+
+<p>The variables written with annotations like <code class="language-plaintext highlighter-rouge">[rsp+Ch]</code> indicates that the CPU ran out of hardware registers and was forced to “spill” intermediate calculations to the stack.</p>
+
+<h3 id="3-dependency-chains">3. Dependency Chains</h3>
+
+<p>look at:</p>
+
+<div class="ida-code">  <span class="var">v28</span> = <span class="num">1.0</span>
+      / (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v30</span> * <span class="fn">COERCE_FLOAT</span>(*<span class="var">a1</span>)) + (<span class="kw">float</span>)(<span class="var">v32</span> * <span class="var">v42</span>)) + (<span class="kw">float</span>)(<span class="var">v33</span> * <span class="var">v37</span>))
+              + (<span class="kw">float</span>)(<span class="var">v3</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>]));</div>
+
+<p>which represents <code class="language-plaintext highlighter-rouge">1.0/determinant</code>. Its calculation requires v30, v32, v33, and others to be completely finished.</p>
+
+<p>Subsequently, every single element written back to the final matrix depends on v28.</p>
+
+<div class="ida-code">  <span class="var">a1</span>[<span class="num">2</span>].<span class="var">m128_f32</span>[<span class="num">1</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v47</span> * (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v45</span>)) + (<span class="kw">float</span>)(<span class="var">v27</span> * <span class="var">v43</span>))
+                                    + (<span class="kw">float</span>)(<span class="var">v34</span> * <span class="var">v46</span>))
+                            - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v25</span> * <span class="var">v43</span>) + (<span class="kw">float</span>)(<span class="var">v47</span> * (<span class="kw">float</span>)(<span class="var">v37</span> * <span class="var">v50</span>)))
+                                    + (<span class="kw">float</span>)(<span class="var">v29</span> * <span class="var">v46</span>)))
+                    * <span class="var">v28</span>;
+  <span class="var">a1</span>[<span class="num">2</span>].<span class="var">m128_f32</span>[<span class="num">2</span>] = (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v25</span> * <span class="var">v5</span>) + (<span class="kw">float</span>)(<span class="var">v47</span> * (<span class="kw">float</span>)(<span class="var">v42</span> * <span class="var">v50</span>))) + (<span class="kw">float</span>)(<span class="var">v35</span> * <span class="var">v46</span>))
+                            - (<span class="kw">float</span>)((<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">v47</span> * (<span class="kw">float</span>)(<span class="var">v38</span>.<span class="var">m128_f32</span>[<span class="num">0</span>] * <span class="var">v41</span>)) + (<span class="kw">float</span>)(<span class="var">v27</span> * <span class="var">v5</span>))
+                                    + (<span class="kw">float</span>)(<span class="var">v36</span> * <span class="var">v46</span>)))
+                    * <span class="var">v28</span>;
+<span class="comment">etc...</span></div>
+
+<p>I would be very surprised if it isn’t stalled at least somewhere in the pipeline</p>
+
+<p>The dunia engine inlined this to about 15-20 instructions by saving required values into registers or the stack and constructing it at the end of projection matrix construction.
+More info on my previous write-up! <a href="https://zero-irp.github.io/Proj-Blog/part-6-reversing-inverse-projection-matrix/">Part 6: Reversing Construction of the Inverse Projection Matrix</a></p>
+
+<p>This also ties into the Camera Matrix and honestly various other matrices!</p>
+
+<blockquote>
+  <p>Reminder!<br />
+Camera Matrix^-1 = View Matrix</p>
+</blockquote>
+
+<p>Let’s take the view matrix for example and how to inline it from my previous blog <a href="https://zero-irp.github.io/ViewProj-Blog/part-4.2-reversing-simd-instrustions/#fast-inverse-for-orthonormal-matrices">Reversing The ViewProjection Matrix (Part 4.2: Reversing SIMD Instructions for Matrix Math - Fast inverse for orthonormal Matrices)</a></p>
+
+<h3 id="fast-inverse-for-orthonormal-matrices">Fast inverse for orthonormal Matrices</h3>
+
+<p>If R is a pure rotation matrix meaning:</p>
+
+<ul>
+  <li>No scaling,</li>
+  <li>No shear,</li>
+  <li>It’s orthonormal (columns are perpendicular and unit-length)</li>
+</ul>
+
+<p>then \(R^{-1} = R^T\)</p>
+
+<p>Suppose a 4x4 matrix with homogenous coordinates:</p>
+
+\[C_{world} =
+\begin{bmatrix}
+R_{00} &amp; R_{01} &amp; R_{02} &amp; 0 \\
+R_{10} &amp; R_{11} &amp; R_{12} &amp; 0 \\
+R_{20} &amp; R_{21} &amp; R_{22} &amp; 0 \\
+T_x &amp; T_y &amp; T_z &amp; 1.0
+\end{bmatrix}\]
+
+<p>Here:</p>
+<ul>
+  <li>R (upper 3×3) is the orientation of the camera in world space.</li>
+  <li>T (bottom row, first 3 values) is the position of the camera in world space.</li>
+</ul>
+
+<p>To get \(C_{world}^{-1}\) we can separate the matrix like so:</p>
+
+\[C_{world} =
+\begin{bmatrix}
+R &amp; 0 \\
+T &amp; 1
+\end{bmatrix}\]
+
+<p>and we want its inverse.</p>
+
+<p>The block matrix inverse formula for this special form  is:</p>
+
+\[\begin{bmatrix} 
+A &amp; 0 \\ 
+B &amp; 1 
+\end{bmatrix}^{-1}
+=
+\begin{bmatrix} 
+A^{-1} &amp; 0 \\ 
+-BA^{-1} &amp; 1 
+\end{bmatrix}\]
+
+<p><em>(See <a href="https://en.wikipedia.org/wiki/Invertible_matrix#Blockwise_inversion">Wikipedia: Blockwise inversion</a> for the general derivation)</em></p>
+
+<p>Applying The Formula we get:</p>
+
+<ul>
+  <li>A = R</li>
+  <li>B = T</li>
+</ul>
+
+<p>So:</p>
+
+\[C_{world}^{-1} =
+\begin{bmatrix}
+R^{-1} &amp; 0 \\
+-TR^{-1} &amp; 1
+\end{bmatrix}\]
+
+<p>Since R is orthonormal (\(R^{-1} = R^T\)):</p>
+
+\[C_{world}^{-1} =
+\begin{bmatrix}
+R^T &amp; 0 \\
+-TR^T &amp; 1
+\end{bmatrix}\]
+
+<blockquote>
+  <p>Exponent “T” represents the Transpose and Regular “T” represents the Translation</p>
+</blockquote>
+
+<p>Now Expand  \(−TR^T\) into its dot products:</p>
+
+<p>if:</p>
+
+\[R =
+\begin{bmatrix}
+R_{0x} &amp; R_{0y} &amp; R_{0z} \\
+R_{1x} &amp; R_{1y} &amp; R_{1z} \\
+R_{2x} &amp; R_{2y} &amp; R_{2z} \\
+\end{bmatrix}\]
+
+<p>and \(T = [T_x, T_y, T_z],\)</p>
+
+<p>So:</p>
+
+\[-TR^T=
+\begin{bmatrix} 
+-T_x &amp; -T_y &amp; -T_z \\
+\end{bmatrix}
+\times
+\begin{bmatrix}
+R_{0x} &amp; R_{1x} &amp; R_{2x} \\
+R_{0y} &amp; R_{1y} &amp; R_{2y} \\
+R_{0z} &amp; R_{1z} &amp; R_{2z} \\
+\end{bmatrix}\]
+
+<p>then:</p>
+
+\[-TR^T = [-dot(T,R_0), -dot(T,R_1), -dot(T,R_2)]\]
+
+<p>So the last row becomes:</p>
+
+\[[-dot(T,R_0), -dot(T,R_1), -dot(T,R_2)]\]
+
+<p>And Expanding \(R^T\) is just the Transpose of the Rotation, thus completing the inverse:</p>
+
+\[C_{world}^{-1} =
+\begin{bmatrix}
+R^T &amp; 0 \\
+-TR^T &amp; 1
+\end{bmatrix}\]
+
+<p>This is also seen in the dunia engine and honestly in most game engines.</p>
+
+<h3 id="dunia-engine-example-for-view-matrix-fast-inverse">Dunia Engine Example for View Matrix Fast Inverse:</h3>
+
+<div class="ida-code">  <span class="comment">// Dot Product of: Right • CamPos</span>
+  <span class="var">rightTrans</span> = (<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">rightY</span> * <span class="var">CamPos_XYZ</span>[<span class="num">1</span>]) + (<span class="kw">float</span>)(<span class="var">rightX</span> * *<span class="var">CamPos_XYZ</span>))
+             + (<span class="kw">float</span>)(<span class="var">rightZ</span> * <span class="var">CamPos_XYZ</span>[<span class="num">2</span>]);
+  <span class="var">forwardZ</span> = *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x88</span>);
+  <span class="var">upX</span> = *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x90</span>);
+  <span class="var">upY</span> = *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x94</span>);
+
+  <span class="comment">// Dot Product of: Forward • CamPos</span>
+  <span class="var">forwardTrans</span> = (<span class="kw">float</span>)((<span class="kw">float</span>)(<span class="var">forwardY</span> * <span class="var">CamPos_XYZ</span>[<span class="num">1</span>]) + (<span class="kw">float</span>)(<span class="var">forwardX</span> * *<span class="var">CamPos_XYZ</span>))
+               + (<span class="kw">float</span>)(<span class="var">forwardZ</span> * <span class="var">CamPos_XYZ</span>[<span class="num">2</span>]);
+  <span class="var">upZ</span> = *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x98</span>);
+
+  <span class="comment">// Dot product of: up • CamPos (upTrans + v18)</span>
+  *(<span class="kw">float</span> *)&amp;<span class="var">v18</span> = <span class="var">upZ</span> * <span class="var">CamPos_XYZ</span>[<span class="num">2</span>];
+  <span class="var">upTrans</span> = (<span class="kw">float</span>)(<span class="var">upY</span> * <span class="var">CamPos_XYZ</span>[<span class="num">1</span>]) + (<span class="kw">float</span>)(<span class="var">upX</span> * *<span class="var">CamPos_XYZ</span>);</div>
+
+<p>Standard Camera Matrix layout being (Memory Layout):</p>
+
+\[C_{world} =
+\begin{bmatrix}
+r_x &amp; r_y &amp; r_z &amp; 0 \\
+u_x &amp; u_y &amp; u_z &amp; 0 \\
+f_x &amp; f_y &amp; f_z &amp; 0 \\
+p_x &amp; p_y &amp; p_z &amp; 1.0
+\end{bmatrix}\]
+
+<p>here the right vector would be stored like so:</p>
+
+<p><code class="language-plaintext highlighter-rouge">*(float *)(a1 + 0x30) = rightX;   *(float *)(a1 + 0x34) = rightY;   *(float *)(a1 + 0x38) = rightZ;</code></p>
+
+<p>The dunia engine transposes it like so and adds the dot products.</p>
+
+<div class="ida-code">  <span class="comment">// Fast inverse for orthonormal matrices (View Matrix Construction)</span>
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x30</span>) = <span class="var">rightX</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x40</span>) = <span class="var">rightY</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x50</span>) = <span class="var">rightZ</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x34</span>) = <span class="var">forwardX</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x44</span>) = <span class="var">forwardY</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x54</span>) = <span class="var">forwardZ</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x58</span>) = <span class="var">upZ</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x38</span>) = <span class="var">upX</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x48</span>) = <span class="var">upY</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x60</span>) = -<span class="var">rightTrans</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x64</span>) = -<span class="var">forwardTrans</span>;
+  *(<span class="kw">float</span> *)(<span class="var">a1</span> + <span class="num">0x68</span>) = -(<span class="kw">float</span>)(<span class="var">upTrans</span> + *(<span class="kw">float</span> *)&amp;<span class="var">v18</span>);</div>
+
+<h3 id="closing-thoughts">Closing thoughts:</h3>
+
+<p>I’m all out of rants and tangents to go on about, here are some main takeaways:</p>
+
+<p><strong>1. Clean C++ Code ≠ Clean Compiled Code</strong></p>
+
+<p><em>Abstraction is a luxury where the cost is performance.</em> Generalized math wrappers and trusting the compiler to “figure it out” is how you end up with 133 instructions instead of 3.</p>
+
+<p><strong>2. Profilers won’t save you</strong></p>
+
+<p>If the entire foundation is bloated, the baseline execution cost of every function is artificially raised. <em>Profiler-Invisible Waste / Death by a Thousand Cuts</em></p>
+
+<p><strong>3. Following the textbook perfectly</strong></p>
+
+<p>Those matrix inversions, matrix multiplications, identity matrices all look great on the whiteboard but in a low-level CPU pipeline it is going about it in a really roundabout way.</p>
+
+<p><strong>4. The “Main Path” Contagion</strong></p>
+
+<p>This is not even a niche, unimportant function. This is the main rendering function preparing many different matrices bound for the GPU for calculations.<br />
+You can guarantee this exact same philosophy infests every other system in the engine.</p>
+
+<p><strong>5. Who was the common antagonist anyway?</strong></p>
+
+<p>You might have already guessed! It’s the <code class="language-plaintext highlighter-rouge">MatrixMultiply4x4()</code> but really that’s just the narrative for this write-up.</p>
+
+<p>The true antagonist is the codebase culture itself. It is the “Clean C++” philosophy that prioritizes developer convenience and generic abstractions over CPU execution realities. This exact same over-engineering bleeds into entirely different mathematical primitives across the entire engine.</p>
+
+<p>And it probably doesn’t even stop at just math libraries, probably every other library is also abused like this.</p>
+
+<p>In my next write-up, we are going to look at the exact opposite problem. We are going to explore the Compatibility Tax. The ghost of a 12-year-old CPU that keeps modern games from utilizing instructions that could theoretically yield 5x speedups.</p>
+
+<p><em>Until then, worship the IDA goddess!</em></p>
+
+<div class="post-nav">
+  <a href="/Redundancy-seen-in-AAA-game-engines/part-3-Avalanche-engine/">&laquo; Part 3: Avalanche Engine (Depth)</a>
+</div>
+
+
+  </div><a class="u-url" href="/Redundancy-seen-in-AAA-game-engines/part-4-using-general-matrix-inverse-when-you-should-not/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/Redundancy-seen-in-AAA-game-engines/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Redundancy and Bloat seen in AAA Game Engines</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">z1rp</li><li><a class="u-email" href="mailto:Zer0_1rp@proton.me">Zer0_1rp@proton.me</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Overengineering in AAA Game Engines</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
+
