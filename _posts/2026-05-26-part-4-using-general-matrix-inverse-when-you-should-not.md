@@ -448,7 +448,7 @@ In my next write-up, we are going to look at the exact opposite problem. We are 
 *Until then, worship the IDA goddess!*
 
 <div class="post-nav">
-  <a href="{{ site.baseurl }}/part-3-Avalanche-engine/">&laquo; Part 3: Avalanche Engine (Depth)</a>
+  <a href="{{ site.baseurl }}/part-3-Avalanche-engine/">&laquo; Part 3: Avalanche Engine</a>
 </div>
 
 
