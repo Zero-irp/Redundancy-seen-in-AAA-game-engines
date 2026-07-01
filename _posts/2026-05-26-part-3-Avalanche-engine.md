@@ -151,6 +151,6 @@ That's about a 120 instruction count drop to 3.
 
 <div class="post-nav">
   <a href="{{ site.baseurl }}/part-2-Ghost-of-tsushima/">&laquo; Part 2: Ghost Of Tsushima</a>
-  <a href="{{ site.baseurl }}/part-4-using-general-matrix-inverse-when-you-should-not/">Part 4: Using generic matrix inverse when you don't need to &raquo;</a>
+  <a href="{{ site.baseurl }}/part-4-using-general-matrix-inverse-when-you-should-not/">Part 4: Using generic matrix inverses &raquo;</a>
 </div>
  
